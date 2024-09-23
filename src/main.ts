@@ -1,11 +1,15 @@
-import './style.css'
+import './style.css';
 // import typescriptLogo from './typescript.svg'
 // import { setupCounter } from './counter.ts'
 
-document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
+const elm = document.querySelector<HTMLDivElement>('#app');
+
+if (elm) {
+  elm.innerHTML = `
   <div>
     <h1>Vite + TypeScript</h1>
   </div>
-`
+`;
+}
 
 // setupCounter(document.querySelector<HTMLButtonElement>('#counter')!)

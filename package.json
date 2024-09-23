@@ -8,8 +8,9 @@
     "build": "tsc && vite build",
     "preview": "vite preview"
   },
-  "devDependencies": {
+  "dependencies": {
     "typescript": "^5.5.3",
-    "vite": "^5.4.1"
+    "vite": "^5.4.1",
+    "@biomejs/biome": "^1.9.2"
   }
 }
