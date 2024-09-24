@@ -1,3 +1,5 @@
+import { CanvasDither } from './canvas-dither';
+
 const WIDTH = 576;
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -24,7 +26,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 画像をキャンバスに描画
         ctx.drawImage(image, 0, 0, WIDTH, height);
-        // TODO: グレースケールにする
         // グレースケールに変換
         const imageData = ctx.getImageData(0, 0, WIDTH, height);
         const data = imageData.data;
@@ -35,6 +36,9 @@ document.addEventListener('DOMContentLoaded', () => {
           data[i + 2] = avg; // 青
         }
         ctx.putImageData(imageData, 0, 0);
+        // 2値化
+        const imageData2 = new CanvasDither().floydsteinberg(ctx.getImageData(0, 0, WIDTH, height));
+        ctx.putImageData(imageData2, 0, 0);
       } catch (error) {
         console.error('画像の読み込みに失敗しました', error);
       }
