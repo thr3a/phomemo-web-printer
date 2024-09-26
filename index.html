@@ -4,15 +4,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Vite + TS</title>
+    <script type="module" src="/src/main.ts"></script>
   </head>
   <body>
-    <input type="file" accept="image/*" id="imgFile">
+    <input type="file" accept="image/*" id="imgFile" onchange="loadImage();">
     <div>
       <canvas id="myCanvas"></canvas>
     </div>
     <div>
-      <button onclick="print();">印刷</button>
+      <button>印刷</button>
     </div>
-    <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
