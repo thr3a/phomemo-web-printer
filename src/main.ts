@@ -10,16 +10,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const canvas = document.getElementById('myCanvas') as HTMLCanvasElement;
   const printBtn = document.getElementById('printBtn') as HTMLButtonElement;
   const ctx = canvas.getContext('2d');
-  if (!ctx) {
-    return;
-  }
+  if (!ctx) return;
 
   fileInput.addEventListener('change', async (event) => {
     const file = (event.target as HTMLInputElement).files?.[0];
-    if (!file) {
-      return;
-    }
-    // 画像をロード
+    if (!file) return;
     const image = await loadImage(file);
 
     // アスペクト比を維持したまま幅をWIDTHにリサイズ
@@ -29,7 +24,6 @@ document.addEventListener('DOMContentLoaded', () => {
     canvas.width = WIDTH;
     canvas.height = height;
 
-    // 画像をキャンバスに描画
     ctx.drawImage(image, 0, 0, WIDTH, height);
     // グレースケールに変換
     const originImageData = ctx.getImageData(0, 0, WIDTH, height);
@@ -41,9 +35,9 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   printBtn.addEventListener('click', async () => {
-    let port = null;
-    let writer: WritableStreamDefaultWriter | null = null;
-    let reader = null;
+    let port: SerialPort | null = null;
+    let writer: WritableStreamDefaultWriter<Uint8Array> | null = null;
+    let reader: ReadableStreamDefaultReader<Uint8Array> | null = null;
 
     if (!navigator.serial) {
       alert('Web Serial APIがサポートされていません。');
@@ -62,10 +56,10 @@ document.addEventListener('DOMContentLoaded', () => {
       // await writer.write(new Uint8Array([ESC, 0x40])); // initialize
       // await writer.write(new Uint8Array([ESC, 0x61, 0x01])); // align center
       await writer.write(new Uint8Array([ESC, 0x40, 0x02])); // reset
-      await writer.write(new Uint8Array([ESC, 0x40]).buffer); // initialize
-      await writer.write(new Uint8Array([ESC, 0x61, 0x01]).buffer); // align center
-      await writer.write(new Uint8Array([US, 0x11, 0x37, 0x96]).buffer); // concentration coefficiennt
-      await writer.write(new Uint8Array([US, 0x11, 0x02, 0x01]).buffer); // concentration
+      await writer.write(new Uint8Array([ESC, 0x40])); // initialize
+      await writer.write(new Uint8Array([ESC, 0x61, 0x01])); // align center
+      await writer.write(new Uint8Array([US, 0x11, 0x37, 0x96])); // concentration coefficiennt
+      await writer.write(new Uint8Array([US, 0x11, 0x02, 0x01])); // concentration
 
       // 画像データを出力
       let start_y = 0;
@@ -140,7 +134,6 @@ function toGrayscale(imageData: ImageData): ImageData {
   return imageData;
 }
 
-// 画像をロードする関数
 function loadImage(file: File): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
