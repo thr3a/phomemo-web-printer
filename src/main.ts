@@ -50,13 +50,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
       writer = port.writable.getWriter();
       if (!writer) return;
-      // await writer.write(new Uint8Array([ESC, 0x40, 0x02])); // reset
-      // await writer.write(new Uint8Array([ESC, 0x40])); // initialize
-      // await writer.write(new Uint8Array([ESC, 0x61, 0x01])); // align center
-      await writer.write(new Uint8Array([ESC, 0x40, 0x02])); // reset
+      // await writer.write(new Uint8Array([ESC, 0x40, 0x02])); // 不明
       await writer.write(new Uint8Array([ESC, 0x40])); // initialize
       await writer.write(new Uint8Array([ESC, 0x61, 0x01])); // align center
       await writer.write(new Uint8Array([US, 0x11, 0x37, 0x96])); // concentration coefficiennt
+      // 濃度 末尾が1=薄い 3=普通 4=濃い
       await writer.write(new Uint8Array([US, 0x11, 0x02, 0x01])); // concentration
 
       // 画像データを出力
@@ -77,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
         startY += height + 1;
       }
       // 改行して印刷
-      await writer.write(new Uint8Array([ESC, 0x64, 0x03]));
+      await writer.write(new Uint8Array([ESC, 0x64, 0x03])); // 0.3mm(0x03)紙送りする
 
       // Get Device Timer
       await writer.write(new Uint8Array([US, 0x11, 0x0e]));
@@ -97,8 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('device timer:', timerValue);
       }
 
-      // 後始末
-      await writer.write(new Uint8Array([ESC, 0x40, 0x02])); // 0.2mm(0x02)紙送りする
+      // await writer.write(new Uint8Array([ESC, 0x40, 0x02])); // 不明
       console.log('印刷が完了しました！');
     } catch (error) {
       console.error('Error:', error);
