@@ -45,9 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     try {
-      // シリアルポートのリクエスト
       port = await navigator.serial.requestPort();
-      // シリアルポートを開く
       await port.open({ baudRate: 115200 });
 
       writer = port.writable.getWriter();
@@ -62,10 +60,10 @@ document.addEventListener('DOMContentLoaded', () => {
       await writer.write(new Uint8Array([US, 0x11, 0x02, 0x01])); // concentration
 
       // 画像データを出力
-      let start_y = 0;
+      let startY = 0;
       while (true) {
-        console.log(start_y);
-        const bitImage = getPrintImage(ctx.getImageData(0, 0, WIDTH, canvas.height), start_y); // 255ライン分のラスターデータを取得
+        const image = ctx.getImageData(0, 0, WIDTH, canvas.height);
+        const bitImage = getPrintImage(image, startY); // 255ライン分のラスターデータを取得
         if (!bitImage) break;
 
         const width = WIDTH / 8;
@@ -76,13 +74,13 @@ document.addEventListener('DOMContentLoaded', () => {
         await writer.write(new Uint8Array([height & 0x00ff, (height >> 8) & 0x00ff])); // height
         await writer.write(bitImage); // raster bit image
 
-        start_y += height + 1;
+        startY += height + 1;
       }
       // 改行して印刷
       await writer.write(new Uint8Array([ESC, 0x64, 0x03]));
 
-      // 印字完了まで待つ
-      await writer.write(new Uint8Array([US, 0x11, 0x0e])); // Get Device Timer
+      // Get Device Timer
+      await writer.write(new Uint8Array([US, 0x11, 0x0e]));
 
       reader = port.readable.getReader();
       let timerValue = -1; // タイマー値を初期化
@@ -94,19 +92,20 @@ document.addEventListener('DOMContentLoaded', () => {
           break;
         }
 
-        // 受信データからタイマー値を取得 (value[2] はタイマー値を表すと仮定)
+        // 受信データからタイマー値を取得
         timerValue = value[2];
         console.log('device timer:', timerValue);
       }
 
       // 後始末
-      await writer.write(new Uint8Array([ESC, 0x40, 0x02])); // reset
+      await writer.write(new Uint8Array([ESC, 0x40, 0x02])); // 0.2mm(0x02)紙送りする
       writer.releaseLock();
       await port.close();
 
       console.log('印刷が完了しました！');
     } catch (error) {
-      console.error('印刷中にエラーが発生しました:', error);
+      console.error('Error:', error);
+    } finally {
       if (writer) {
         writer.releaseLock();
       }
@@ -144,9 +143,9 @@ function loadImage(file: File): Promise<HTMLImageElement> {
 }
 
 // ImageDataから2値化したラスターデータを取得する関数
-function getPrintImage(imageData: ImageData, start_y: number): Uint8Array | null {
+function getPrintImage(imageData: ImageData, startY: number): Uint8Array | null {
   const width = imageData.width;
-  const height = Math.min(255, imageData.height - start_y); // 最大255ライン
+  const height = Math.min(255, imageData.height - startY); // 最大255ライン
 
   if (height <= 0) {
     return null; // 出力するデータがない
@@ -157,7 +156,7 @@ function getPrintImage(imageData: ImageData, start_y: number): Uint8Array | null
 
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
-      const i = ((start_y + y) * width + x) * 4;
+      const i = ((startY + y) * width + x) * 4;
       const pixelIndex = y * width + x;
       const byteIndex = Math.floor(pixelIndex / 8);
       const bitIndex = pixelIndex % 8;
