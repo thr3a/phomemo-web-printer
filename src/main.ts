@@ -99,9 +99,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // 後始末
       await writer.write(new Uint8Array([ESC, 0x40, 0x02])); // 0.2mm(0x02)紙送りする
-      writer.releaseLock();
-      await port.close();
-
       console.log('印刷が完了しました！');
     } catch (error) {
       console.error('Error:', error);
