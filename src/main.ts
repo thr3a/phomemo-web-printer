@@ -1,3 +1,4 @@
+const WIDTH = 576;
 const FF = 0x0c;
 const NAK = 0x15;
 const CAN = 0x18;
@@ -5,58 +6,91 @@ const ESC = 0x1b;
 const GS = 0x1d;
 const US = 0x1f;
 
-const WIDTH = 576;
-
 document.addEventListener('DOMContentLoaded', () => {
   const fileInput = document.getElementById('imgFile') as HTMLInputElement;
+  const canvas = document.getElementById('myCanvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    return;
+  }
+
   fileInput.addEventListener('change', async (event) => {
-    loadImage();
-    print();
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) {
+      return;
+    }
+    const image = await loadImage(file);
+    // アスペクト比を維持したまま幅をWIDTHにリサイズ
+    const aspectRatio = image.height / image.width;
+    const height = Math.round(WIDTH * aspectRatio);
+    // キャンバスのサイズをM02Sの解像度に合わせる
+    canvas.width = WIDTH;
+    canvas.height = height;
+    // 画像をキャンバスに描画
+    ctx.drawImage(image, 0, 0, WIDTH, height);
+    // TODO:きれいに
+    // ctx.putImageData(toGrayscale(ctx.getImageData(0, 0, WIDTH, height)), 0, 0);
+
+    const bit_image = getPrintImage(canvas, 0);
+    console.log(bit_image);
+
+    // print();
   });
 
-  // 画像ファイルを読み込んでcanvasに描画
-  function loadImage() {
-    const files = document.getElementById('imgFile').files;
-    const reader = new FileReader();
-    reader.addEventListener('load', (evt) => {
-      const _src = evt.target.result;
-      const cvs = document.querySelector('canvas');
-      const ctx = cvs.getContext('2d');
-      ctx.clearRect(0, 0, cvs.width, cvs.height);
+  function base64encode(data: Uint8Array) {
+    return btoa([...data].map((n) => String.fromCharCode(n)).join(''));
+  }
 
-      const gImage = new Image();
-      gImage.src = _src;
-      gImage.addEventListener(
-        'load',
-        () => {
-          cvs.width = WIDTH; // M02Sの解像度に合わせる
-          cvs.height = (WIDTH * gImage.height) / gImage.width;
-          ctx.drawImage(gImage, 0, 0, cvs.width, cvs.height);
-        },
-        false
-      );
+  function base64decode(data: string) {
+    return new Uint8Array([...atob(data)].map((s) => s.charCodeAt(0)));
+  }
+
+  function loadImage(file: File): Promise<HTMLImageElement> {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = URL.createObjectURL(file);
     });
-    reader.readAsDataURL(files[0]);
   }
 
-  // 画像をグレイスケール化
-  function toGrayscale(array, width, height) {
-    const outputArray = new Uint8Array(width * height);
-    for (let y = 0; y < height; y += 4) {
-      for (let x = 0; x < width; x += 4) {
-        for (let dy = 0; dy < 4; ++dy) {
-          for (let dx = 0; dx < 4; ++dx) {
-            const r = array[((y + dy) * width + (x + dx)) * 4 + 0];
-            const g = array[((y + dy) * width + (x + dx)) * 4 + 1];
-            const b = array[((y + dy) * width + (x + dx)) * 4 + 2];
-            const gray = ((r + g + b) / 3) | 0;
-            outputArray[(y + dy) * width + (x + dx)] = gray;
-          }
-        }
-      }
-    }
-    return outputArray;
+  // 画像ファイルを読み込んでcanvasに描画
+  function loadImage2() {
+    // const files = document.getElementById('imgFile').files;
+    // const reader = new FileReader();
+    // reader.addEventListener('load', (evt) => {
+    //   const _src = evt.target.result;
+    //   const cvs = document.querySelector('canvas');
+    //   const ctx = cvs.getContext('2d');
+    //   ctx.clearRect(0, 0, cvs.width, cvs.height);
+    //   const gImage = new Image();
+    //   gImage.src = _src;
+    //   gImage.addEventListener(
+    //     'load',
+    //     () => {
+    //       cvs.width = WIDTH; // M02Sの解像度に合わせる
+    //       cvs.height = (WIDTH * gImage.height) / gImage.width;
+    //       ctx.drawImage(gImage, 0, 0, cvs.width, cvs.height);
+    //     },
+    //     false
+    //   );
+    // });
+    // reader.readAsDataURL(files[0]);
   }
+
+  // 画像をITU-R Rec BT.601標準に基づいてグレイスケール化
+  // function toGrayscale(imageData: ImageData): ImageData {
+  //   const data = imageData.data;
+  //   for (let i = 0; i < data.length; i += 4) {
+  //     const r = data[i];
+  //     const g = data[i + 1];
+  //     const b = data[i + 2];
+  //     // 輝度の計算 (加重平均法)
+  //     const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+  //     data[i] = data[i + 1] = data[i + 2] = gray;
+  //   }
+  //   return imageData;
+  // }
 
   // 画像を誤差拡散で2値化
   function errorDiffusion1CH(u8array, width, height) {
@@ -95,24 +129,43 @@ document.addEventListener('DOMContentLoaded', () => {
     return outputData;
   }
 
+  // 画像をグレイスケール化
+  function toGrayscale(array, width, height) {
+    const outputArray = new Uint8Array(width * height);
+    for (let y = 0; y < height; y += 4) {
+      for (let x = 0; x < width; x += 4) {
+        for (let dy = 0; dy < 4; ++dy) {
+          for (let dx = 0; dx < 4; ++dx) {
+            const r = array[((y + dy) * width + (x + dx)) * 4 + 0];
+            const g = array[((y + dy) * width + (x + dx)) * 4 + 1];
+            const b = array[((y + dy) * width + (x + dx)) * 4 + 2];
+            const gray = ((r + g + b) / 3) | 0;
+            outputArray[(y + dy) * width + (x + dx)] = gray;
+          }
+        }
+      }
+    }
+    return outputArray;
+  }
+
   // canvas画像をグレイスケール→誤差拡散で2値化
   function getErrorDiffusionImage(cvs) {
     const ctx = cvs.getContext('2d');
-    const inputData = ctx.getImageData(0, 0, cvs.width, cvs.height).data;
+    const inputData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
 
-    const output = ctx.createImageData(cvs.width, cvs.height);
+    const output = ctx.createImageData(canvas.width, canvas.height);
     const outputData = output.data;
 
-    const grayArray = toGrayscale(inputData, cvs.width, cvs.height);
-    const funcOutput = errorDiffusion1CH(grayArray, cvs.width, cvs.height);
-    for (let y = 0; y < cvs.height; y += 1) {
-      for (let x = 0; x < cvs.width; x += 1) {
-        const value = funcOutput[y * cvs.width + x];
+    const grayArray = toGrayscale(inputData, canvas.width, cvs.height);
+    const funcOutput = errorDiffusion1CH(grayArray, canvas.width, canvas.height);
+    for (let y = 0; y < canvas.height; y += 1) {
+      for (let x = 0; x < canvas.width; x += 1) {
+        const value = funcOutput[y * canvas.width + x];
 
-        outputData[(y * cvs.width + x) * 4 + 0] = value;
-        outputData[(y * cvs.width + x) * 4 + 1] = value;
-        outputData[(y * cvs.width + x) * 4 + 2] = value;
-        outputData[(y * cvs.width + x) * 4 + 3] = 0xff;
+        outputData[(y * canvas.width + x) * 4 + 0] = value;
+        outputData[(y * canvas.width + x) * 4 + 1] = value;
+        outputData[(y * canvas.width + x) * 4 + 2] = value;
+        outputData[(y * canvas.width + x) * 4 + 3] = 0xff;
       }
     }
     return outputData;
@@ -121,7 +174,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // canvasの画像データからラスターイメージデータ取得
   function getPrintImage(cvs, start_y) {
     const inputData = getErrorDiffusionImage(cvs);
-
     if (start_y > cvs.height) return null;
 
     const height = start_y + 255 < cvs.height ? start_y + 255 : cvs.height;
@@ -165,6 +217,8 @@ document.addEventListener('DOMContentLoaded', () => {
       // 画像出力
       let start_y = 0;
       while (true) {
+        console.log(start_y);
+
         const bit_image = getPrintImage(cvs, start_y); // 255ラインのラスターデータを取得
         if (!bit_image) break;
 
