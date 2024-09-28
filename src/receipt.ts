@@ -1,6 +1,11 @@
 import receiptline from 'receiptline';
 import dedent from 'ts-dedent';
 
+const WIDTH = 576;
+const ESC = 0x1b;
+const GS = 0x1d;
+const US = 0x1f;
+
 const text = dedent`^^^RECEIPT
 03/18/2024, 12:34:56 PM
 にんじん | 1| 1.00
@@ -9,16 +14,16 @@ const text = dedent`^^^RECEIPT
 ---
 ^TOTAL | ^6.00`;
 
-const svg = receiptline.transform(text, {
-  cpl: 48,
-  encoding: 'shiftjis'
-});
+const svg = receiptline
+  .transform(text, {
+    cpl: 48,
+    encoding: 'shiftjis'
+  })
+  .replace(
+    'https://fonts.googleapis.com/css2?family=Kosugi+Maru&display=swap',
+    'https://fonts.googleapis.com/css2?family=DotGothic16&family=M+PLUS+2&display=swap'
+  );
 console.log(svg);
-
-const WIDTH = 576;
-const ESC = 0x1b;
-const GS = 0x1d;
-const US = 0x1f;
 
 document.addEventListener('DOMContentLoaded', () => {
   const printBtn = document.getElementById('printBtn') as HTMLButtonElement;
