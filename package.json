@@ -11,6 +11,7 @@
   "dependencies": {
     "@biomejs/biome": "^1.9.2",
     "@types/dom-serial": "^1.0.6",
+    "receiptline": "^1.16.1",
     "typescript": "^5.5.3",
     "vite": "^5.4.1"
   }
