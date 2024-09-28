@@ -1,50 +1,19 @@
-// import receiptline from 'receiptline';
-declare global {
-  interface Window {
-    receiptline: any;
-  }
-}
-// const receiptline = window.receiptline;
+import receiptline from 'receiptline';
+import dedent from 'ts-dedent';
 
-const svg = `
-<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
-  <circle cx="50" cy="50" r="45" fill="red" />
-  <path d="M50 10 Q60 0 70 10 T90 30" fill="green" />
-  <path d="M30 30 Q40 0 50 10" fill="green" />
-</svg>
-`;
-document.addEventListener('DOMContentLoaded', () => {
-  const canvas = document.getElementById('myCanvas') as HTMLCanvasElement;
-  if (!canvas) return;
+const text = dedent`^^^RECEIPT
+03/18/2024, 12:34:56 PM
+にんじん | 1| 1.00
+ブロッコリー  | 2| 2.00
+白菜    | 3| 3.00
+---
+^TOTAL | ^6.00`;
 
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return;
-
-  const svgBlob = new Blob([svg], { type: 'image/svg+xml' });
-  const url = URL.createObjectURL(svgBlob);
-
-  const img = new Image();
-  img.onload = () => {
-    ctx.drawImage(img, 0, 0);
-    URL.revokeObjectURL(url);
-  };
-  img.src = url;
+const svg = receiptline.transform(text, {
+  cpl: 48,
+  encoding: 'shiftjis'
 });
-
-// const text = `^^^RECEIPT
-// 03/18/2024, 12:34:56 PM
-// Asparagus | 1| 1.00
-// Broccoli  | 2| 2.00
-// Carrot    | 3| 3.00
-// ---
-// ^TOTAL | ^6.00`;
-
-// const svg = receiptline.transform(text, {
-//   cpl: 48,
-//   encoding: 'shiftjis'
-// });
-
-// console.log(svg);
+console.log(svg);
 
 const WIDTH = 576;
 const ESC = 0x1b;
@@ -52,11 +21,16 @@ const GS = 0x1d;
 const US = 0x1f;
 
 document.addEventListener('DOMContentLoaded', () => {
-  const fileInput = document.getElementById('imgFile') as HTMLInputElement;
-  const canvas = document.getElementById('myCanvas') as HTMLCanvasElement;
   const printBtn = document.getElementById('printBtn') as HTMLButtonElement;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return;
+  const paper = document.getElementById('paper') as HTMLCanvasElement;
+  const dom = new DOMParser().parseFromString(svg, 'image/svg+xml').documentElement;
+  while (paper.hasChildNodes()) {
+    const firstChild = paper.firstChild;
+    if (firstChild) {
+      paper.removeChild(firstChild);
+    }
+  }
+  paper.appendChild(dom);
 
   // fileInput.addEventListener('change', async (event) => {
   //   const file = (event.target as HTMLInputElement).files?.[0];
