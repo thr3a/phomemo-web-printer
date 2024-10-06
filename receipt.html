@@ -1,18 +1,107 @@
 <!doctype html>
 <html lang="ja">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>レシートプリンター</title>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/gh/receiptline/receiptline@master/lib/receiptline.js"></script>
-    <script type="module" src="/src/receipt.ts"></script>
-  </head>
-  <body>
-    <div>
-      <canvas id="myCanvas"></canvas>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>レシートプリンター</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+  <script type="module" src="/src/receipt.ts"></script>
+  <style>
+    .recipt {
+      background-color: #FFFFFF;
+      width: 576px;
+      /* border: 1px solid #000000; */
+      font-family: "DotGothic16", sans-serif;
+      font-weight: 400;
+      font-style: normal;
+      font-size: 26px;
+    }
+
+    .recipt-container {
+      padding: 20px;
+    }
+
+    .center {
+      text-align: center;
+      width: 100%;
+    }
+
+    .spacer {
+      height: 10px;
+    }
+
+    .logo {
+      font-size: 54px;
+      font-weight: bold;
+    }
+
+    .title {
+      letter-spacing: 10px;
+      text-indent: 10px;
+      font-size: 36px;
+      transform: scale(2, 1.1);
+    }
+
+    .item {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .total {
+      display: flex;
+      justify-content: flex-end;
+      font-size: 36px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="recipt">
+    <div class="recipt-container">
+      <div class="center logo">sie; Lab</div>
+
+      <div class="spacer"></div>
+
+      <div class="center title">領収書</div>
+
+      <div class="spacer"></div>
+      <div class="spacer"></div>
+
+      <div>2024年11月03日(日)</div>
+      <div>池袋サンシャインシティ店</div>
+      <div>この度はお買い上げいただきありがとうございます。</div>
+
+      <div class="spacer"></div>
+      <div class="spacer"></div>
+
+      <div class="center">購入商品</div>
+
+      <div class="spacer"></div>
+
+      <div class="item">
+        <div>シンカンボン</div>
+        <div>¥500</div>
+      </div>
+
+      <div class="spacer"></div>
+
+      <div class="total">
+        <div>
+          合計 ¥500
+        </div>
+      </div>
     </div>
-    <div>
-      <button id="printBtn">印刷</button>
-    </div>
-  </body>
+  </div>
+  <div>
+    <canvas id="myCanvas"></canvas>
+  </div>
+  <div>
+    <button id="printBtn" class="btn btn-primary">印刷</button>
+  </div>
+</body>
+
 </html>
