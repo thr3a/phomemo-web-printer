@@ -1,0 +1,42 @@
+name: Build Next.js app
+
+on:
+  push:
+
+env:
+  IMAGE_NAME: ghcr.io/${{ github.repository }}:${{ github.run_number }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: write
+    steps:
+      ##############################################
+      # 共通
+      ###############################################
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # #############################################
+      # Github Pages
+      # ##############################################
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install NPM packages
+        run: npm ci
+
+      - name: Build Next.js app
+        run: npm run build
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: dist
+          cname: printer.turai.work
