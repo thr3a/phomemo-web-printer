@@ -1,3 +1,4 @@
+// original: https://github.com/NielsLeenheer/CanvasDither
 export class CanvasDither {
   grayscale(image: ImageData): ImageData {
     for (let i = 0; i < image.data.length; i += 4) {
