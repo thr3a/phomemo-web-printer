@@ -50,7 +50,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
       writer = port.writable.getWriter();
       if (!writer) return;
-      // await writer.write(new Uint8Array([ESC, 0x40, 0x02])); // 不明
       await writer.write(new Uint8Array([ESC, 0x40])); // initialize
       await writer.write(new Uint8Array([ESC, 0x61, 0x01])); // align center
       await writer.write(new Uint8Array([US, 0x11, 0x37, 0x96])); // concentration coefficiennt
@@ -95,7 +94,6 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('device timer:', timerValue);
       }
 
-      // await writer.write(new Uint8Array([ESC, 0x40, 0x02])); // 不明
       console.log('印刷が完了しました！');
     } catch (error) {
       console.error('Error:', error);
